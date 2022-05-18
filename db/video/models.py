@@ -6,24 +6,39 @@ from mptt.models import MPTTModel, TreeForeignKey
 
 # Create your models here.
 
+models.Q
+
+from . import VideoType
+
+class Video(BaseModel):
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, null=True)
+    name = models.CharField(max_length=524)
+    description = models.CharField(max_length=128, null=True, blank=True)
+    dtype = models.CharField(max_length=64, choices=VideoType.CHOICES)
+
+    banner = models.ImageField(upload_to='image/', null=True, blank=True)
+    video = models.FileField(upload_to='video/', null=True, blank=True)
+    
+    def __str__(self) -> str:
+        return self.name
+
+
 class Tag(BaseModel):
     title = models.CharField(max_length=128)
     description = models.CharField(max_length=524, null=True)
+    video = models.ForeignKey(Video, on_delete=models.SET_NULL, null=True, related_name="tags")
 
     def __str__(self) -> str:
         return self.title
 
 
-class Video(BaseModel):
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
-    url = models.CharField(max_length=128)
-    name = models.CharField(max_length=524)
-    description = models.CharField(max_length=128, null=True, blank=True)
-
-    tags = models.ManyToManyField(Tag, related_name="tags", blank=True)
+class SearchHistory(BaseModel):
+    text = models.CharField(max_length=254)
+    video_type = models.CharField(max_length=64, choices=VideoType.CHOICES)
+    # TODO - user
 
     def __str__(self) -> str:
-        return self.name
+        return self.text
 
 
 class Like(BaseModel):
