@@ -91,8 +91,12 @@ WSGI_APPLICATION = 'OyBoy.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'oyboy',
+        'USER': 'oyboy',
+        'PASSWORD': 'DW1515Asd!324DW',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
