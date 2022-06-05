@@ -27,10 +27,10 @@ class Channel(BaseModel):
     description = models.CharField(max_length=524, null=True, blank=True)
     avatar = models.ImageField(upload_to="images/", null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-
+    banned = models.BooleanField(default=False)
+    
     def __str__(self) -> str:
         return self.title
-
 
 
 class Subscription(BaseModel):

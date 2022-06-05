@@ -2,8 +2,12 @@ from django.contrib import admin
 from .models import (
     Like, Dislike, Favourite, 
     Video, Tag, View,
-    Comment, CommentDislike, CommentLike
+    Comment, CommentDislike, CommentLike, 
+    VideoReport, ChannelReport
 )
+from django.db.models import Count
+
+from db.account.models import Channel
 
 # Register your models here.
 
@@ -27,6 +31,10 @@ from .models import (
 # class ViewAdmin(admin.ModelAdmin):
 #     pass
 
+class ChannelInline(admin.StackedInline):
+    model = Channel
+    
+
 class LikeInline(admin.TabularInline):
     model = Like
 
@@ -43,18 +51,46 @@ class FavouriteInline(admin.TabularInline):
     model = Favourite
 
 
-class VideoInline(admin.TabularInline):
+@admin.register(Video)
+class VideoAdmin(admin.ModelAdmin):
+    # inlines = [LikeInline, DislikeInline, ViewInline]
+    list_display = ["name", "reports_count"]
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            reports_count=Count('reports'))
+    
+    def reports_count(self, obj):
+        return obj.reports_count
+
+
+
+class ChannelInline(admin.StackedInline):
+    model = Channel
+
+
+class VideoInline(admin.StackedInline):
     model = Video
 
 
-@admin.register(Video)
-class VideoAdmin(admin.ModelAdmin):
-    inlines = [LikeInline, DislikeInline, ViewInline]
+@admin.register(VideoReport)
+class VideoReportAdmin(admin.ModelAdmin):
+    search_fields = ["text", "user__username", "video__name"]
+    list_filter = ["video"]
+    list_display = ["text", "video", "user"]
+    # inlines = [VideoInline]
 
 
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    pass
+@admin.register(ChannelReport)
+class ChannelReportAdmin(admin.ModelAdmin):
+    search_fields = ["text", "user__username", "channel__title"]
+    list_filter = ["channel"]
+    list_display = ["text", "channel", "user"]
+    # inlines = [ChannelInline]
+
+# @admin.register(Tag)
+# class TagAdmin(admin.ModelAdmin):
+#     pass
 
 
 
@@ -68,15 +104,15 @@ class TagAdmin(admin.ModelAdmin):
 #     pass
 
 
-class CommentLikeInline(admin.TabularInline):
-    model = CommentLike
+# class CommentLikeInline(admin.TabularInline):
+#     model = CommentLike
 
 
-class CommentDislikeInline(admin.TabularInline):
-    model = CommentDislike
+# class CommentDislikeInline(admin.TabularInline):
+#     model = CommentDislike
 
 
-@admin.register(Comment)
-class CommentAdmin(admin.ModelAdmin):
-    inlines = [CommentLikeInline, CommentDislikeInline]
+# @admin.register(Comment)
+# class CommentAdmin(admin.ModelAdmin):
+#     inlines = [CommentLikeInline, CommentDislikeInline]
 
