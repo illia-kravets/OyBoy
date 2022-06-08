@@ -30,12 +30,3 @@ class ChannelViewSet(ModelViewSet):
 
     def get_queryset(self):
         return super().get_queryset().annotate(subscribers=Count('subscriptions')).prefetch_related("user")
-
-# class VideoViewSet(ModelViewSet):
-#     model_class = models.Video
-#     serializer_class = serializers.VideoSerializer
-#     queryset = model_class.objects.all()
-#     # filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-#     filterset_class = VideoFilterset
-#     search_fields = ['name', 'channel__title']
-#     ordering_fields = ["id", "created_at", "view_count"]
