@@ -26,12 +26,14 @@ SECRET_KEY = 'django-insecure-oxq&n7_5(0l$s33bfmef%sj2zlj&a1(0w*#mg%zyem*4g%zh1s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*", "b615-94-130-230-70.ngrok.io"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    "admin_interface",
+    "colorfield",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,7 +49,8 @@ INSTALLED_APPS = [
     "mptt",
     "rest_framework",
     "django_filters",
-    "rest_framework_simplejwt"
+    "rest_framework_simplejwt",
+    
 ]
 
 AUTH_USER_MODEL = 'account.User' 
@@ -88,8 +91,12 @@ WSGI_APPLICATION = 'OyBoy.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'oyboy',
+        'USER': 'oyboy',
+        'PASSWORD': 'DW1515Asd!324DW',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -143,9 +150,11 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_ROOT = f'{BASE_DIR}/media/'
+
 MEDIA_URL = '/media/'
 
 STATIC_ROOT = f'{BASE_DIR}/static/'
+
 STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
@@ -159,3 +168,6 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,
 }
+
+X_FRAME_OPTIONS = "SAMEORIGIN"
+SILENCED_SYSTEM_CHECKS = ["security.W019"]
