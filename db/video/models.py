@@ -116,4 +116,20 @@ class CommentDislike(BaseModel):
     class Meta:
         unique_together = ("user", "comment")
 
+
+class VideoReport(BaseModel):
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="reports")
+    user = ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    text = models.TextField()
     
+    def __str__(self) -> str:
+        return self.video.name + "|" + self.text[:50]
+    
+
+class ChannelReport(BaseModel):
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="reports")
+    user = ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    text = models.TextField()
+    
+    def __str__(self) -> str:
+        return self.channel.title + "|" + self.text[:100]
