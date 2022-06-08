@@ -39,6 +39,10 @@ class LikeInline(admin.TabularInline):
     model = Like
 
 
+class TagInline(admin.TabularInline):
+    model = Tag
+
+
 class DislikeInline(admin.TabularInline):
     model = Dislike
 
@@ -54,6 +58,7 @@ class FavouriteInline(admin.TabularInline):
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
     # inlines = [LikeInline, DislikeInline, ViewInline]
+    inlines = [TagInline]
     list_display = ["name", "reports_count"]
     
     def get_queryset(self, request):
@@ -72,7 +77,7 @@ class ChannelInline(admin.StackedInline):
 class VideoInline(admin.StackedInline):
     model = Video
 
-
+    
 @admin.register(VideoReport)
 class VideoReportAdmin(admin.ModelAdmin):
     search_fields = ["text", "user__username", "video__name"]
@@ -80,7 +85,7 @@ class VideoReportAdmin(admin.ModelAdmin):
     list_display = ["text", "video", "user"]
     # inlines = [VideoInline]
 
-
+    
 @admin.register(ChannelReport)
 class ChannelReportAdmin(admin.ModelAdmin):
     search_fields = ["text", "user__username", "channel__title"]
