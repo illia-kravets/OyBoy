@@ -31,6 +31,10 @@ class LikeInline(admin.TabularInline):
     model = Like
 
 
+class TagInline(admin.TabularInline):
+    model = Tag
+
+
 class DislikeInline(admin.TabularInline):
     model = Dislike
 
@@ -49,7 +53,7 @@ class VideoInline(admin.TabularInline):
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
-    inlines = [LikeInline, DislikeInline, ViewInline]
+    inlines = [TagInline]
 
 
 @admin.register(Tag)
