@@ -68,6 +68,7 @@ class VideoSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField(read_only=True)
     dislikes = serializers.SerializerMethodField(read_only=True)
     views = serializers.SerializerMethodField(read_only=True)
+    channel_id = serializers.IntegerField()
 
     class Meta:
         model = Video

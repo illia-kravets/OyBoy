@@ -35,7 +35,7 @@ class Channel(BaseModel):
 
 class Subscription(BaseModel):
     user = ForeignKey(User, on_delete=models.CASCADE)
-    channel = ForeignKey(Channel, on_delete=models.CASCADE)
+    channel = ForeignKey(Channel, on_delete=models.CASCADE, related_name="subscriptions")
 
     def __str__(self) -> str:
         return self.user.username + "|" + self.channel.title
