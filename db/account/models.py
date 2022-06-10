@@ -1,3 +1,4 @@
+from tkinter import CASCADE
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models.fields.related import ForeignKey
@@ -12,30 +13,19 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class User(AbstractUser):
+class Profile(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)
+    description = models.CharField(max_length=524, null=True, blank=True)
+    avatar = models.ImageField(upload_to="images/", null=True, blank=True)
+    banned = models.BooleanField(default=False)
     
     # USERNAME_FIELD = "email"
     # REQUIRED_FIELDS = []
-
+    
     def __str__(self) -> str:
         return self.username
 
 
-class Channel(BaseModel):
-    title = models.CharField(max_length=128, null=True)
-    description = models.CharField(max_length=524, null=True, blank=True)
-    avatar = models.ImageField(upload_to="images/", null=True, blank=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    banned = models.BooleanField(default=False)
-    
-    def __str__(self) -> str:
-        return self.title
-
-
-class Subscription(BaseModel):
-    user = ForeignKey(User, on_delete=models.CASCADE)
-    channel = ForeignKey(Channel, on_delete=models.CASCADE, related_name="subscriptions")
-
-    def __str__(self) -> str:
-        return self.user.username + "|" + self.channel.title
+class Subscription(models.Model):
+    subscriber = models.ForeignKey('account.Profile', on_delete=models.CASCADE, related_name="subsribtions")
+    profile = models.ForeignKey('account.Profile', on_delete=models.CASCADE, related_name="subscribers")

@@ -1,24 +1,18 @@
 from rest_framework import serializers
 
-from .models import User, Channel
+from .models import Profile
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = "__all__"
 
-
-class ChannelSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+class ProfileSerializer(serializers.ModelSerializer):
     subscribers = serializers.SerializerMethodField(read_only=True)
     
     class Meta:
-        model = Channel
+        model = Profile
         fields = "__all__"
     
     def get_subscribers(self, obj):
-        if subs := getattr(obj, "subscribers", None):
+        if subs := getattr(obj, "subscriber_count", None):
             return subs
         return 0
 

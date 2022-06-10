@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from db.account.serializers import ChannelSerializer, UserSerializer
+from db.account.serializers import ProfileSerializer
 
 from .models import Tag, View, Like, Dislike, Favourite, Video, Tag, Comment, SearchHistory
 
@@ -12,35 +12,35 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class ViewSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    profile = ProfileSerializer(read_only=True)
     
     class Meta:
         model = View
-        fields = ["user", "video_id"]
+        fields = ["profile", "video_id"]
 
 
 class LikeSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    profile = ProfileSerializer(read_only=True)
 
     class Meta:
         model = Like
-        fields = ["user", "video_id"]
+        fields = ["profile", "video_id"]
 
 
 class DislikeSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    profile = ProfileSerializer(read_only=True)
 
     class Meta:
         model = Dislike
-        fields = ["user", "video_id"]
+        fields = ["profile", "video_id"]
 
 
 class FavouriteSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    profile = ProfileSerializer(read_only=True)
 
     class Meta:
         model = Favourite
-        fields = ["user", "video_id"]
+        fields = ["profile", "video_id"]
 
 
 class SearchSerializer(serializers.ModelSerializer):
@@ -63,7 +63,7 @@ class SearchSerializer(serializers.ModelSerializer):
 
 
 class VideoSerializer(serializers.ModelSerializer):
-    channel = ChannelSerializer(read_only=True)
+    channel = ProfileSerializer(read_only=True)
     tags = TagSerializer(many=True, required=False)
     likes = serializers.SerializerMethodField(read_only=True)
     dislikes = serializers.SerializerMethodField(read_only=True)
@@ -100,13 +100,17 @@ class VideoSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    profile = ProfileSerializer(read_only=True)
     likes = serializers.SerializerMethodField(read_only=True)
     dislikes = serializers.SerializerMethodField(read_only=True)
+    
+    profile_id = serializers.IntegerField(write_only=True)
+    video_id = serializers.IntegerField(write_only=True)
+    parent_id = serializers.IntegerField(write_only=True, required=False)
 
     class Meta:
         model = Comment
-        fields = "__all__"
+        exclude = ["video", "parent"]
 
     def get_likes(self, obj):
         if likes := getattr(obj, "like_count", None):

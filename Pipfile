@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
 django-mptt = "*"
 djangorestframework = "*"
 pillow = "*"
@@ -12,6 +11,7 @@ django-admin-interface = "*"
 django-filter = "*"
 djangorestframework-simplejwt = "*"
 psycopg2-binary = "*"
+django = "*"
 
 [dev-packages]
 

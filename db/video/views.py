@@ -15,7 +15,7 @@ class VideoViewSet(ModelViewSet):
     queryset = model_class.objects.all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = VideoFilterset
-    search_fields = ['name', 'channel__title']
+    search_fields = ['name', 'profile__username']
     ordering_fields = ["id", "created_at", "view_count"]
 
     def get_queryset(self):
@@ -24,7 +24,7 @@ class VideoViewSet(ModelViewSet):
             "dislike_count": Count("dislike"),
             "view_count": Count("view") 
         }
-        return super().get_queryset().annotate(**annotations).prefetch_related("channel", "tags")
+        return super().get_queryset().annotate(**annotations).prefetch_related("profile", "tags")
 
 
 class TagViewSet(ModelViewSet):
@@ -57,11 +57,14 @@ class CommentViewSet(ModelViewSet):
     model_class = models.Comment
     serializer_class = serializers.CommentSerializer
     queryset = model_class.objects.all()
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'profile__username']
+    ordering_fields = ["id", "created_at"]
 
     def get_queryset(self):
         annotations = {
-            "like_count": Count('like'),
-            "dislike_count": Count("dislike")
+            "like_count": Count('likes'),
+            "dislike_count": Count("dislikes")
         }
         return super().get_queryset().annotate(**annotations)
 

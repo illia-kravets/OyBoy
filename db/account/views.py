@@ -6,8 +6,8 @@ from rest_framework.viewsets import ModelViewSet
 
 from db.video.serializers import ViewSerializer 
 from db.video.models import View
-from db.account.models import Channel
-from db.account.serializers import ChannelSerializer
+from db.account.models import Profile
+from db.account.serializers import ProfileSerializer
 # Create your views here.
 
 
@@ -17,16 +17,16 @@ class ViewHistoryViewSet(ModelViewSet):
     queryset = model_class.objects.all()
 
     def get_queryset(self):
-        return super().get_queryset().filter(user=self.request.user)
+        return super().get_queryset().filter(profile=self.request.user)
  
 
 class ChannelViewSet(ModelViewSet):
-    model_class = Channel
-    serializer_class = ChannelSerializer
+    model_class = Profile
+    serializer_class = ProfileSerializer
     queryset = model_class.objects.all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title']
     ordering_fields = ["id", "created_at", "subscriber_count"]
 
     def get_queryset(self):
-        return super().get_queryset().annotate(subscribers=Count('subscriptions')).prefetch_related("user")
+        return super().get_queryset().annotate(subscriber_count=Count('subscribers'))

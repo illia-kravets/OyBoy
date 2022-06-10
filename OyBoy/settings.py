@@ -124,6 +124,7 @@ AUTHENTICATION_BACKENDS = [
     'OyBoy.backends.CustomAuthBackend',
 ]
 
+AUTH_USER_MODEL = "account.Profile"
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/

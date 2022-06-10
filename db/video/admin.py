@@ -7,7 +7,7 @@ from .models import (
 )
 from django.db.models import Count
 
-from db.account.models import Channel
+from db.account.models import Profile
 
 # Register your models here.
 
@@ -31,10 +31,7 @@ from db.account.models import Channel
 # class ViewAdmin(admin.ModelAdmin):
 #     pass
 
-class ChannelInline(admin.StackedInline):
-    model = Channel
     
-
 class LikeInline(admin.TabularInline):
     model = Like
 
@@ -70,8 +67,8 @@ class VideoAdmin(admin.ModelAdmin):
 
 
 
-class ChannelInline(admin.StackedInline):
-    model = Channel
+class ProfileInline(admin.StackedInline):
+    model = Profile
 
 
 class VideoInline(admin.StackedInline):
@@ -80,18 +77,18 @@ class VideoInline(admin.StackedInline):
     
 @admin.register(VideoReport)
 class VideoReportAdmin(admin.ModelAdmin):
-    search_fields = ["text", "user__username", "video__name"]
+    search_fields = ["text", "reporter__username", "video__name"]
     list_filter = ["video"]
-    list_display = ["text", "video", "user"]
+    list_display = ["text", "video", "reporter"]
     # inlines = [VideoInline]
 
     
 @admin.register(ChannelReport)
 class ChannelReportAdmin(admin.ModelAdmin):
-    search_fields = ["text", "user__username", "channel__title"]
-    list_filter = ["channel"]
-    list_display = ["text", "channel", "user"]
-    # inlines = [ChannelInline]
+    search_fields = ["text", "offender__username", "reporter__username"]
+    list_filter = ["offender"]
+    list_display = ["text", "offender", "reporter"]
+    # inlines = [ProfileInline]
 
 # @admin.register(Tag)
 # class TagAdmin(admin.ModelAdmin):

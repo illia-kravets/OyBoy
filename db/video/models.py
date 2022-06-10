@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models.fields import CharField
 from django.db.models.fields.related import ForeignKey
-from db.account.models import BaseModel, User, Channel
+from db.account.models import BaseModel
 from mptt.models import MPTTModel, TreeForeignKey
 
 # Create your models here.
@@ -11,7 +11,7 @@ models.Q
 from . import VideoType
 
 class Video(BaseModel):
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, null=True)
+    profile = models.ForeignKey("account.Profile", on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=524)
     description = models.CharField(max_length=128, null=True, blank=True)
     dtype = models.CharField(max_length=64, choices=VideoType.CHOICES)
@@ -35,6 +35,7 @@ class Tag(BaseModel):
 class SearchHistory(BaseModel):
     text = models.CharField(max_length=254)
     video_type = models.CharField(max_length=64, choices=VideoType.CHOICES)
+    profile = ForeignKey("account.Profile", on_delete=models.CASCADE)
     # TODO - user
 
     def __str__(self) -> str:
@@ -42,50 +43,51 @@ class SearchHistory(BaseModel):
 
 
 class Like(BaseModel):
-    user = ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    profile = ForeignKey("account.Profile", on_delete=models.SET_NULL, null=True)
     video = ForeignKey(Video, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return self.user.username + "|" + self.video.name
+        return self.profile.username + "|" + self.video.name
 
 
 class Dislike(BaseModel):
-    user = ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    profile = ForeignKey("account.Profile", on_delete=models.SET_NULL, null=True)
     video = ForeignKey(Video, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return self.user.username + "|" + self.video.name
+        return self.profile.username + "|" + self.video.name
 
     class Meta:
-        unique_together = ("user", "video")
+        unique_together = ("profile", "video")
 
 
 class View(BaseModel):
-    user = ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    profile = ForeignKey("account.Profile", on_delete=models.SET_NULL, null=True)
     video = ForeignKey(Video, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return self.user.username + "|" + self.video.name
+        return self.profile.username + "|" + self.video.name
 
     class Meta:
-        unique_together = ("user", "video")
+        unique_together = ("profile", "video")
 
 
 class Favourite(BaseModel):
-    user = ForeignKey(User, on_delete=models.CASCADE)
+    profile = ForeignKey("account.Profile", on_delete=models.CASCADE)
     video = ForeignKey(Video, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return self.user.username + "|" + self.video.name
+        return self.profile.username + "|" + self.video.name
 
     class Meta:
-        unique_together = ("user", "video")
+        unique_together = ("profile", "video")
 
 
 class Comment(BaseModel, MPTTModel):
     name = models.CharField(max_length=128)
     description = models.CharField(max_length=512, null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    profile = models.ForeignKey("account.Profile", on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE)
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
 
     class MPTTMeta:
@@ -96,30 +98,30 @@ class Comment(BaseModel, MPTTModel):
 
 
 class CommentLike(BaseModel):
-    user = ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    profile = ForeignKey("account.Profile", on_delete=models.SET_NULL, null=True)
     comment = ForeignKey(Comment, on_delete=models.CASCADE, related_name="likes")
 
     def __str__(self) -> str:
-        return self.user.username + "|" + self.comment.name
+        return self.profile.username + "|" + self.comment.name
 
     class Meta:
-        unique_together = ("user", "comment")
+        unique_together = ("profile", "comment")
 
 
 class CommentDislike(BaseModel):
-    user = ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    profile = ForeignKey("account.Profile", on_delete=models.SET_NULL, null=True)
     comment = ForeignKey(Comment, on_delete=models.CASCADE, related_name="dislikes")
 
     def __str__(self) -> str:
-        return self.user.username + "|" + self.comment.name
+        return self.profile.username + "|" + self.comment.name
 
     class Meta:
-        unique_together = ("user", "comment")
+        unique_together = ("profile", "comment")
 
 
 class VideoReport(BaseModel):
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="reports")
-    user = ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    reporter = ForeignKey("account.Profile", on_delete=models.SET_NULL, null=True)
     text = models.TextField()
     
     def __str__(self) -> str:
@@ -127,9 +129,9 @@ class VideoReport(BaseModel):
     
 
 class ChannelReport(BaseModel):
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="reports")
-    user = ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    offender = models.ForeignKey("account.Profile", on_delete=models.CASCADE, related_name="reports")
+    reporter = ForeignKey("account.Profile", on_delete=models.SET_NULL, null=True)
     text = models.TextField()
     
     def __str__(self) -> str:
-        return self.channel.title + "|" + self.text[:100]
+        return self.offender.username + "|" + self.text[:100]

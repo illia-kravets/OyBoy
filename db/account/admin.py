@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Subscription, Channel
+from .models import Profile, Subscription
 from db.video.admin import VideoInline, ViewInline, FavouriteInline, LikeInline, DislikeInline, Video
 from django.db.models import Count
 # Register your models here.
@@ -10,16 +10,12 @@ from django.db.models import Count
 
 class SubscriptionInline(admin.TabularInline):
     model = Subscription
+    fk_name = "subscriber"
+    
 
-
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    inlines = [ViewInline, FavouriteInline, LikeInline, DislikeInline, SubscriptionInline]
-
-
-@admin.register(Channel)
+@admin.register(Profile)
 class ChannelAdmin(admin.ModelAdmin):
-    list_display = ["title", "reports_count"]
+    list_display = ["username", "reports_count"]
     inlines = [SubscriptionInline, VideoInline]
     
     def get_queryset(self, request):
