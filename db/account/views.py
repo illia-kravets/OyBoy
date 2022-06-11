@@ -8,7 +8,8 @@ from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet 
 
-from db.video.serializers import ViewSerializer 
+from db.video.serializers import ViewSerializer, ChannelReportSerializer 
+from db.video.models import ChannelReport
 from db.video.models import View
 from db.account.models import Profile
 from db.account.serializers import ProfileSerializer
@@ -44,3 +45,12 @@ class ProfileViewSet(mixins.RetrieveModelMixin,
             subscriber_count=Count('subscribers'), 
             subscribtion_count=Count('subscribtions')
         )
+
+    @action(detail=True, methods=["post"])
+    def report(self, request, pk):
+        creds = dict(video_id=pk, profile=request.user)
+        qs = ChannelReport.objects.filter(**creds)
+        if qs.exists():
+            return Response(qs.update(**self.request.body))
+        report = ChannelReportSerializer.objects.create(**creds, **self.request.body)
+        return Response(ChannelReportSerializer(report).data)
