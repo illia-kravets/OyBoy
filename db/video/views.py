@@ -1,7 +1,9 @@
 from rest_framework.viewsets import ModelViewSet
-from django.db.models import Count
+from django.db.models import Count, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from . import models
 from . import serializers
@@ -12,21 +14,33 @@ from .filterset import VideoFilterset, TagFilterset
 class VideoViewSet(ModelViewSet):
     model_class = models.Video
     serializer_class = serializers.VideoSerializer
-    queryset = model_class.objects.all()
+    queryset = model_class.objects.filter()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = VideoFilterset
     search_fields = ['name', 'profile__username']
     ordering_fields = ["id", "created_at", "view_count"]
 
     def get_queryset(self):
-        annotations = {
-            "like_count": Count('like'),
-            "dislike_count": Count("dislike"),
-            "view_count": Count("view") 
-        }
-        return super().get_queryset().annotate(**annotations).prefetch_related("profile", "tags")
-
-
+        qs = super().get_queryset() \
+            .annotate(
+                like_count=Count('like'),
+                dislike_count=Count("dislike"),
+                view_count=Count("view"),
+                liked=Count("like", filter=Q(like__profile=self.request.user))
+            ).prefetch_related("profile", "tags")
+        if not self.request.query_params.get("show_banned"):
+            qs = qs.filter(banned=False, profile__banned=False)
+        return qs
+    
+    @action(detail=True, methods=["post"])
+    def like(self, request, pk):
+        creds = dict(video_id=pk, profile=request.user)
+        qs = models.Like.objects.filter(**creds)
+        if qs.exists():
+            return Response(qs.delete())
+        like = models.Like.objects.create(**creds)
+        return Response(serializers.LikeSerializer(like).data)
+    
 class TagViewSet(ModelViewSet):
     model_class = models.Tag
     filterset_class = TagFilterset
@@ -49,8 +63,13 @@ class SearchHistoryViewSet(ModelViewSet):
 
     def get_queryset(self):
         # TODO - add searched
-        return super().get_queryset().values("text", "video_type").annotate(search_count=Count("id")).order_by("-search_count")
-
+        return super().get_queryset() \
+            .values("text", "video_type") \
+            .annotate(
+                search_count=Count("id"),
+                searched=Count("id", filter=Q(profile=self.request.user))
+            ) \
+            .order_by("-search_count")
 
 
 class CommentViewSet(ModelViewSet):

@@ -53,27 +53,28 @@ class SearchSerializer(serializers.ModelSerializer):
         return 0
 
     def get_searched(self, obj):
-        if searched := getattr(obj, "searched", None):
-            return searched
+        if searched := obj.get("searched", None):
+            return bool(searched)
         return False
 
     class Meta:
         model = SearchHistory
+        extra_kwargs = {'profile': {'write_only': True}}
         fields = "__all__"
 
 
 class VideoSerializer(serializers.ModelSerializer):
-    channel = ProfileSerializer(read_only=True)
+    profile = ProfileSerializer(read_only=True)
     tags = TagSerializer(many=True, required=False)
     likes = serializers.SerializerMethodField(read_only=True)
     dislikes = serializers.SerializerMethodField(read_only=True)
+    liked = serializers.SerializerMethodField(read_only=True)
     views = serializers.SerializerMethodField(read_only=True)
-    channel_id = serializers.IntegerField()
+    profile_id = serializers.IntegerField()
 
     class Meta:
         model = Video
         fields = "__all__"
-    
     
     def create(self, validated_data):
         tags = validated_data.pop("tags", [])
@@ -82,7 +83,11 @@ class VideoSerializer(serializers.ModelSerializer):
         Tag.objects.bulk_create(tags)
         return video
 
-        
+    def get_liked(self, obj):
+        if liked := getattr(obj, "liked", None):
+            return bool(liked)
+        return False
+    
     def get_likes(self, obj):
         if likes := getattr(obj, "like_count", None):
             return likes

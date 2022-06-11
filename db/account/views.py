@@ -1,8 +1,12 @@
 from django.shortcuts import render
 from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
-from rest_framework.viewsets import ModelViewSet
+from pkg_resources import require
+from rest_framework import filters, mixins
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet, GenericViewSet 
 
 from db.video.serializers import ViewSerializer 
 from db.video.models import View
@@ -20,13 +24,23 @@ class ViewHistoryViewSet(ModelViewSet):
         return super().get_queryset().filter(profile=self.request.user)
  
 
-class ChannelViewSet(ModelViewSet):
+class InitialView(APIView):
+    def get(self, request, format=None):
+        instance = Profile.objects.filter(id=request.user.id) \
+            .annotate(
+                subscriber_count=Count('subscribers'), 
+                subscribtion_count=Count('subscribtions')
+            ).first()
+        return Response(ProfileSerializer(instance=instance).data)
+
+
+class ProfileViewSet(mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   GenericViewSet):
+    
     model_class = Profile
     serializer_class = ProfileSerializer
-    queryset = model_class.objects.all()
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['title']
-    ordering_fields = ["id", "created_at", "subscriber_count"]
-
-    def get_queryset(self):
-        return super().get_queryset().annotate(subscriber_count=Count('subscribers'))
+    queryset = model_class.objects.annotate(
+            subscriber_count=Count('subscribers'), 
+            subscribtion_count=Count('subscribtions')
+        )

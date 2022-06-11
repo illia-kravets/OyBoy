@@ -27,5 +27,5 @@ class Profile(AbstractUser):
 
 
 class Subscription(models.Model):
-    subscriber = models.ForeignKey('account.Profile', on_delete=models.CASCADE, related_name="subsribtions")
+    subscriber = models.ForeignKey('account.Profile', on_delete=models.CASCADE, related_name="subscribtions")
     profile = models.ForeignKey('account.Profile', on_delete=models.CASCADE, related_name="subscribers")

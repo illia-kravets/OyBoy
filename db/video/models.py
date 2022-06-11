@@ -18,6 +18,7 @@ class Video(BaseModel):
 
     banner = models.ImageField(upload_to='image/', null=True, blank=True)
     video = models.FileField(upload_to='video/', null=True, blank=True)
+    banned = models.BooleanField(default=False)
     
     def __str__(self) -> str:
         return self.name
