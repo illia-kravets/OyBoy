@@ -48,9 +48,9 @@ class ProfileViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=True, methods=["post"])
     def report(self, request, pk):
-        creds = dict(video_id=pk, profile=request.user)
+        creds = dict(offender_id=pk, reporter=request.user)
         qs = ChannelReport.objects.filter(**creds)
         if qs.exists():
-            return Response(qs.update(**self.request.body))
-        report = ChannelReportSerializer.objects.create(**creds, **self.request.body)
+            return Response(qs.update(**request.data))
+        report = ChannelReport.objects.create(**creds, **request.data)
         return Response(ChannelReportSerializer(report).data)
