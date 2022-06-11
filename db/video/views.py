@@ -40,6 +40,16 @@ class VideoViewSet(ModelViewSet):
             return Response(qs.delete())
         like = models.Like.objects.create(**creds)
         return Response(serializers.LikeSerializer(like).data)
+
+    @action(detail=True, methods=["post"])
+    def report(self, request, pk):
+        creds = dict(video_id=pk, profile=request.user)
+        qs = models.VideoReport.objects.filter(**creds)
+        if qs.exists():
+            return Response(qs.delete())
+        like = models.Like.objects.create(**creds)
+        return Response(serializers.LikeSerializer(like).data)
+    
     
 class TagViewSet(ModelViewSet):
     model_class = models.Tag

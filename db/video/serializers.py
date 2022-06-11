@@ -2,8 +2,14 @@ from rest_framework import serializers
 
 from db.account.serializers import ProfileSerializer
 
-from .models import Tag, View, Like, Dislike, Favourite, Video, Tag, Comment, SearchHistory
+from .models import Tag, VideoReport, View, Like, Dislike, Favourite, Video, Tag, Comment, SearchHistory
 
+
+class VideoReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VideoReport
+        fields = "__all__"
+        
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
