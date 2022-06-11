@@ -43,11 +43,11 @@ class VideoViewSet(ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def report(self, request, pk):
-        creds = dict(video_id=pk, profile=request.user)
+        creds = dict(video_id=pk, reporter=request.user)
         qs = models.VideoReport.objects.filter(**creds)
         if qs.exists():
-            return Response(qs.update(**self.request.body))
-        report = models.VideoReport.objects.create(**creds, **self.request.body)
+            return Response(qs.update(**request.data))
+        report = models.VideoReport.objects.create(**creds, **request.data)
         return Response(serializers.VideoReportSerializer(report).data)
     
     
