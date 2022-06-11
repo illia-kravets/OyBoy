@@ -65,7 +65,7 @@ class SearchSerializer(serializers.ModelSerializer):
         return 0
 
     def get_searched(self, obj):
-        if searched := obj.get("searched", None):
+        if isinstance(obj, dict) and (searched := obj.get("searched", None)):
             return bool(searched)
         return False
 
