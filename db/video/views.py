@@ -46,8 +46,8 @@ class VideoViewSet(ModelViewSet):
         creds = dict(video_id=pk, reporter=request.user)
         qs = models.VideoReport.objects.filter(**creds)
         if qs.exists():
-            return Response(qs.update(**request.data))
-        report = models.VideoReport.objects.create(**creds, **request.data)
+            return Response(qs.update(text=request.data.get("text")))
+        report = models.VideoReport.objects.create(**creds, text=request.data.get("text"))
         return Response(serializers.VideoReportSerializer(report).data)
     
     
