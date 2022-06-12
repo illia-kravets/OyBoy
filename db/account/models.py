@@ -17,7 +17,7 @@ class Profile(AbstractUser):
     description = models.CharField(max_length=524, null=True, blank=True)
     avatar = models.ImageField(upload_to="images/", null=True, blank=True)
     banned = models.BooleanField(default=False)
-    full_name = models.CharField(max_length=256)
+    full_name = models.CharField(max_length=256, null=True, blank=True)
     
     # USERNAME_FIELD = "email"
     # REQUIRED_FIELDS = []
