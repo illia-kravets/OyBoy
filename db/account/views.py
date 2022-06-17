@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.db.models import Count
+from django.db.models import Count, Q, OuterRef, Subquery
 from django_filters.rest_framework import DjangoFilterBackend
 from pkg_resources import require
 from rest_framework import filters, mixins
@@ -11,8 +11,9 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from db.video.serializers import ViewSerializer, ChannelReportSerializer 
 from db.video.models import ChannelReport
 from db.video.models import View
-from db.account.models import Profile
-from db.account.serializers import ProfileSerializer
+from db.account.models import Profile, Subscription
+from db.account.serializers import ProfileSerializer, SubscriptionSerializer
+from utils.base import Utils
 # Create your views here.
 
 
@@ -41,10 +42,19 @@ class ProfileViewSet(mixins.RetrieveModelMixin,
     
     model_class = Profile
     serializer_class = ProfileSerializer
-    queryset = model_class.objects.annotate(
-            subscriber_count=Count('subscribers'), 
-            subscribtion_count=Count('subscribtions')
-        )
+    queryset = model_class.objects
+
+    def get_queryset(self):
+        return super().get_queryset() \
+            .annotate(
+                subscriber_count=Subquery(
+                    Subscription.objects.filter(profile=OuterRef("pk"))
+                        .values("profile").annotate(count=Count("id")).values("count")), 
+                subscribtion_count=Subquery(
+                    Subscription.objects.filter(subscriber=OuterRef("pk")).values("subscriber")
+                        .annotate(count=Count("id")).values("count")),
+                subscribed=Count("subscribers", filter=Q(subscribers__subscriber=self.request.user))
+            )
 
     @action(detail=True, methods=["post"])
     def report(self, request, pk):
@@ -54,3 +64,12 @@ class ProfileViewSet(mixins.RetrieveModelMixin,
             return Response(qs.update(text=request.data.get("text")))
         report = ChannelReport.objects.create(**creds, text=request.data.get("text"))
         return Response(ChannelReportSerializer(report).data)
+
+    @action(detail=True, methods=["post"])
+    def subscribe(self, request, pk):
+        creds = {"profile_id": pk, "subscriber": request.user}
+        qs = Subscription.objects.filter(**creds)
+        if qs.exists():
+            return Response(qs.delete())
+        instance = Subscription.objects.create(**creds)
+        return Response(SubscriptionSerializer(instance).data)

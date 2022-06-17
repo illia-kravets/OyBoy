@@ -4,10 +4,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from utils.base import Utils
 
 from . import models
 from . import serializers
-from .filterset import VideoFilterset, TagFilterset
+from .filterset import VideoFilterset, TagFilterset, CommentFilterset
 # Create your views here.
 
 
@@ -26,7 +27,8 @@ class VideoViewSet(ModelViewSet):
                 like_count=Count('like'),
                 dislike_count=Count("dislike"),
                 view_count=Count("view"),
-                liked=Count("like", filter=Q(like__profile=self.request.user))
+                liked=Count("like", filter=Q(like__profile=self.request.user)),
+                favourited=Count("favourite", filter=Q(favourite__profile=self.request.user))
             ).prefetch_related("profile", "tags")
         if not self.request.query_params.get("show_banned"):
             qs = qs.filter(banned=False, profile__banned=False)
@@ -34,12 +36,18 @@ class VideoViewSet(ModelViewSet):
     
     @action(detail=True, methods=["post"])
     def like(self, request, pk):
-        creds = dict(video_id=pk, profile=request.user)
-        qs = models.Like.objects.filter(**creds)
-        if qs.exists():
-            return Response(qs.delete())
-        like = models.Like.objects.create(**creds)
-        return Response(serializers.LikeSerializer(like).data)
+        return Utils.toggle_view(pk, "video_id", request.user, model=models.Like, serializer=serializers.LikeSerializer)
+
+    @action(detail=True, methods=["post"])
+    def favourite(self, request, pk):
+        return Utils.toggle_view(pk, "video_id", request.user, model=models.Favourite, serializer=serializers.FavouriteSerializer)
+
+    @action(detail=True, methods=["post"])
+    def view(self, request, pk):
+        creds = dict(video_id=pk, reporter=request.user)
+        models.View.objects.filter(**creds).delete()
+        view = models.View.objects.create(**creds)
+        return Response(serializers.ViewSerializer(view).data)
 
     @action(detail=True, methods=["post"])
     def report(self, request, pk):
@@ -87,6 +95,7 @@ class CommentViewSet(ModelViewSet):
     serializer_class = serializers.CommentSerializer
     queryset = model_class.objects.all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = CommentFilterset
     search_fields = ['name', 'profile__username']
     ordering_fields = ["id", "created_at"]
 

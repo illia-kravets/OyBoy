@@ -81,6 +81,7 @@ class VideoSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField(read_only=True)
     dislikes = serializers.SerializerMethodField(read_only=True)
     liked = serializers.SerializerMethodField(read_only=True)
+    favourited = serializers.SerializerMethodField(read_only=True)
     views = serializers.SerializerMethodField(read_only=True)
     profile_id = serializers.IntegerField()
 
@@ -98,6 +99,11 @@ class VideoSerializer(serializers.ModelSerializer):
     def get_liked(self, obj):
         if liked := getattr(obj, "liked", None):
             return bool(liked)
+        return False
+
+    def get_favourited(self, obj):
+        if favourited := getattr(obj, "favourited", None):
+            return bool(favourited)
         return False
     
     def get_likes(self, obj):
