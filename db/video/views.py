@@ -32,6 +32,8 @@ class VideoViewSet(ModelViewSet):
             ).prefetch_related("profile", "tags")
         if not self.request.query_params.get("show_banned"):
             qs = qs.filter(banned=False, profile__banned=False)
+        if not self.request.query_params.get("show_own", False):
+            qs = qs.filter(~Q(profile=self.request.user))
         return qs
     
     @action(detail=True, methods=["post"])

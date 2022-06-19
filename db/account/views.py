@@ -30,8 +30,12 @@ class InitialView(APIView):
     def get(self, request, format=None):
         instance = Profile.objects.filter(id=request.user.id) \
             .annotate(
-                subscriber_count=Count('subscribers'), 
-                subscribtion_count=Count('subscribtions')
+                subscriber_count=Subquery(
+                    Subscription.objects.filter(profile=OuterRef("pk"))
+                        .values("profile").annotate(count=Count("id")).values("count")), 
+                subscribtion_count=Subquery(
+                    Subscription.objects.filter(subscriber=OuterRef("pk")).values("subscriber")
+                        .annotate(count=Count("id")).values("count")),
             ).first()
         return Response(ProfileSerializer(instance=instance).data)
 
