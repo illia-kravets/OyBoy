@@ -89,13 +89,6 @@ class VideoSerializer(serializers.ModelSerializer):
         model = Video
         fields = "__all__"
     
-    def create(self, validated_data):
-        tags = validated_data.pop("tags", [])
-        video = super().create(validated_data)
-        tags = [Tag(video=video, **x) for x in tags]
-        Tag.objects.bulk_create(tags)
-        return video
-
     def get_liked(self, obj):
         if liked := getattr(obj, "liked", None):
             return bool(liked)

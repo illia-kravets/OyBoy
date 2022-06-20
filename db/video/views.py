@@ -54,7 +54,7 @@ class VideoViewSet(ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def view(self, request, pk):
-        creds = dict(video_id=pk, reporter=request.user)
+        creds = dict(video_id=pk, profile=request.user)
         models.View.objects.filter(**creds).delete()
         view = models.View.objects.create(**creds)
         return Response(serializers.ViewSerializer(view).data)
@@ -67,7 +67,7 @@ class VideoViewSet(ModelViewSet):
             return Response(qs.update(text=request.data.get("text")))
         report = models.VideoReport.objects.create(**creds, text=request.data.get("text"))
         return Response(serializers.VideoReportSerializer(report).data)
-    
+
     
 class TagViewSet(ModelViewSet):
     model_class = models.Tag
