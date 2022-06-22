@@ -5,10 +5,12 @@ from rest_framework import filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from utils.base import Utils
+from django.db.models import Count, Q, OuterRef, Subquery
 
 from . import models
 from . import serializers
 from .filterset import VideoFilterset, TagFilterset, CommentFilterset
+from db.account.models import Subscription
 # Create your views here.
 
 
@@ -22,16 +24,24 @@ class VideoViewSet(ModelViewSet):
     ordering_fields = ["id", "created_at", "view_count"]
 
     def get_queryset(self):
+        profile = self.request.user
         qs = super().get_queryset() \
             .annotate(
                 like_count=Count('like'),
                 dislike_count=Count("dislike"),
                 view_count=Count("view"),
-                liked=Count("like", filter=Q(like__profile=self.request.user)),
-                favourited=Count("favourite", filter=Q(favourite__profile=self.request.user))
+                liked=Count("like", filter=Q(like__profile=profile)),
+                favourited=Count("favourite", filter=Q(favourite__profile=profile))
             ).prefetch_related("profile", "tags")
         if not self.request.query_params.get("show_banned"):
             qs = qs.filter(banned=False, profile__banned=False)
+        if not self.request.query_params.get("show_own", False):
+            qs = qs.filter(~Q(profile=profile))
+        if self.request.query_params.get("q", "") == "subscribtion":
+            qs = qs.annotate(is_subscriber=Subquery(
+                    Subscription.objects.filter(profile=OuterRef("profile"), subscriber=profile).values("subscriber")
+                        .annotate(count=Count("id")).values("count"))
+                ).filter(is_subscriber__gt=0)
         return qs
     
     @action(detail=True, methods=["post"])
@@ -44,7 +54,7 @@ class VideoViewSet(ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def view(self, request, pk):
-        creds = dict(video_id=pk, reporter=request.user)
+        creds = dict(video_id=pk, profile=request.user)
         models.View.objects.filter(**creds).delete()
         view = models.View.objects.create(**creds)
         return Response(serializers.ViewSerializer(view).data)
@@ -57,7 +67,7 @@ class VideoViewSet(ModelViewSet):
             return Response(qs.update(text=request.data.get("text")))
         report = models.VideoReport.objects.create(**creds, text=request.data.get("text"))
         return Response(serializers.VideoReportSerializer(report).data)
-    
+
     
 class TagViewSet(ModelViewSet):
     model_class = models.Tag

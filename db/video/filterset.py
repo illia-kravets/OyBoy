@@ -7,6 +7,7 @@ class VideoFilterset(filters.FilterSet):
     tags = filters.BaseInFilter(field_name="tags__title", lookup_expr="in")
     profiles = filters.BaseInFilter(field_name="profile_id", lookup_expr="in")
     favourite_profiles = filters.BaseInFilter(field_name="favourite__profile_id", lookup_expr="in")
+    exclude = filters.BaseInFilter(field_name="id", lookup_expr="in", exclude=True)
     dtype = filters.ChoiceFilter(choices=VideoType.CHOICES)
 
     class Meta:
