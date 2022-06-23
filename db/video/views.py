@@ -88,7 +88,7 @@ class TagViewSet(ModelViewSet):
 
     @action(detail=False, methods=["post"])
     def bulk(self, request):
-        objects = [models.Tag(**x) for x in request.data]
+        objects = [models.Tag(**x) for x in request.data.get("tags", [])]
         tags = models.Tag.objects.bulk_create(objects, ignore_conflicts=True)
         return Response(serializers.TagSerializer(tags, many=True).data)
 
