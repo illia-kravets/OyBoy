@@ -1,3 +1,4 @@
+from enum import unique
 from django.db import models
 from django.db.models.fields import CharField
 from django.db.models.fields.related import ForeignKey
@@ -31,6 +32,9 @@ class Tag(BaseModel):
 
     def __str__(self) -> str:
         return self.title
+
+    class Meta:
+        unique_together = ('title', 'video')
 
 
 class SearchHistory(BaseModel):

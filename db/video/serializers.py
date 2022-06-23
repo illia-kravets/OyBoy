@@ -80,6 +80,7 @@ class VideoSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, required=False)
     likes = serializers.SerializerMethodField(read_only=True)
     dislikes = serializers.SerializerMethodField(read_only=True)
+    comments = serializers.SerializerMethodField(read_only=True)
     liked = serializers.SerializerMethodField(read_only=True)
     favourited = serializers.SerializerMethodField(read_only=True)
     views = serializers.SerializerMethodField(read_only=True)
@@ -102,6 +103,11 @@ class VideoSerializer(serializers.ModelSerializer):
     def get_likes(self, obj):
         if likes := getattr(obj, "like_count", None):
             return likes
+        return 0
+
+    def get_comments(self, obj):
+        if comments := getattr(obj, "comment_count", None):
+            return comments
         return 0
 
     def get_dislikes(self, obj):

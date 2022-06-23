@@ -1,3 +1,4 @@
+from urllib import request
 from rest_framework.viewsets import ModelViewSet
 from django.db.models import Count, Q
 from django_filters.rest_framework import DjangoFilterBackend
@@ -29,6 +30,7 @@ class VideoViewSet(ModelViewSet):
             .annotate(
                 like_count=Count('like'),
                 dislike_count=Count("dislike"),
+                comment_count=Count("comment"),
                 view_count=Count("view"),
                 liked=Count("like", filter=Q(like__profile=profile)),
                 favourited=Count("favourite", filter=Q(favourite__profile=profile))
@@ -77,7 +79,18 @@ class TagViewSet(ModelViewSet):
     queryset = model_class.objects
 
     def get_queryset(self):
-        return super().get_queryset().values("title").annotate(count=Count("id")).order_by("-count")
+        return super().get_queryset().filter(
+                ~Q(video__profile=self.request.user),
+                video__profile__banned=False,
+                video__banned=False
+            ) \
+            .values("title").annotate(count=Count("id")).order_by("-count")
+
+    @action(detail=False, methods=["post"])
+    def bulk(self, request):
+        objects = [models.Tag(**x) for x in request.data]
+        tags = models.Tag.objects.bulk_create(objects, ignore_conflicts=True)
+        return Response(serializers.TagSerializer(tags, many=True).data)
 
 
 class SearchHistoryViewSet(ModelViewSet):
